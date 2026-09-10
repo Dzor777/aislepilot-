@@ -1,0 +1,68 @@
+import { SampleListPreset } from '@/lib/types';
+
+export const SAMPLE_LIST_PRESETS: SampleListPreset[] = [
+  {
+    id: 'preset-weekly',
+    title: '🛒 Weekly Staples Run',
+    description: '10 common items spanning heavy canned goods, cereal, milk, bananas & ice cream',
+    badgeText: '10 Items',
+    items: [
+      '2% Whole Milk (1 gal)',
+      'Bananas (1 bunch)',
+      'Ground Beef 80/20 (2 lb)',
+      'Campbell Tomato Soup (2 cans)',
+      'Honey Nut Cheerios',
+      'Tide Laundry Pods',
+      'French Bread',
+      'Tillamook Cheddar Cheese',
+      'Paper Towels 6-pack',
+      'Ben & Jerry Ice Cream (Pint)',
+    ],
+  },
+  {
+    id: 'preset-bbq',
+    title: '🔥 Friday Night BBQ',
+    description: 'Meat, charcoal, chips, soda, buns & condiments',
+    badgeText: '8 Items',
+    items: [
+      'Boneless Chicken Breasts',
+      'Kingsford Charcoal Briquettes',
+      'Sweet Baby Ray BBQ Sauce',
+      'Lay Potato Chips Family Size',
+      'Coca-Cola 12-pack',
+      'Hamburger Buns',
+      'Heinz Ketchup & Mustard',
+      'Paper Plates & Napkins',
+    ],
+  },
+  {
+    id: 'preset-baking',
+    title: '🍰 Holiday Baking Supplies',
+    description: 'Flour, sugar, eggs, butter, chocolate chips & vanilla',
+    badgeText: '7 Items',
+    items: [
+      'All Purpose Flour 5 lb',
+      'Granulated White Sugar',
+      'Unsalted Butter (2 packs)',
+      'Large Grade A Eggs (12 ct)',
+      'Nestle Semi-Sweet Chocolate Chips',
+      'Pure Vanilla Extract',
+      'Baking Soda & Powder',
+    ],
+  },
+  {
+    id: 'preset-tacos',
+    title: '🌮 Taco Tuesday Night',
+    description: 'Tortillas, ground turkey, salsa, cheese, avocados & beans',
+    badgeText: '7 Items',
+    items: [
+      'Lean Ground Turkey (1.5 lb)',
+      'Old El Paso Soft Taco Shells',
+      'Taco Seasoning Mix',
+      'Black Beans (2 cans)',
+      'Pace Chunky Salsa Medium',
+      'Shredded Mexican Blend Cheese',
+      'Fresh Hass Avocados (3 ct)',
+    ],
+  },
+];
