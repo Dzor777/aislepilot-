@@ -9,7 +9,28 @@ export interface CategoryMapping {
 }
 
 export const WALMART_DEPARTMENT_TAXONOMY: CategoryMapping[] = [
-  // ZONE 1: Household, Paper Goods, Cleaning (Aisles A26 - A32 / Household)
+  // ZONE 1: Household, Baby, Toys, Pets & Cleaning
+  {
+    keywords: ['baby toy', 'baby toys', 'teether', 'rattle', 'pacifier', 'diaper', 'diapers', 'pampers', 'huggies', 'baby wipes', 'wipes', 'baby food', 'gerber', 'formula', 'enfamil', 'similac'],
+    categoryName: 'Baby & Infant Care',
+    zoneId: 'ZONE_1_HOUSEHOLD',
+    aisleTag: 'Aisle H2',
+    aisleNumber: 2,
+  },
+  {
+    keywords: ['toy', 'toys', 'game', 'board game', 'puzzle', 'lego', 'barbie', 'hot wheels', 'action figure', 'doll'],
+    categoryName: 'Toys & Games',
+    zoneId: 'ZONE_1_HOUSEHOLD',
+    aisleTag: 'Aisle E4',
+    aisleNumber: 4,
+  },
+  {
+    keywords: ['dog food', 'cat food', 'dog treats', 'cat litter', 'pet toy', 'dog toy', 'purina', 'blue buffalo', 'pedigree', 'tidy cats'],
+    categoryName: 'Pet Supplies',
+    zoneId: 'ZONE_1_HOUSEHOLD',
+    aisleTag: 'Aisle I3',
+    aisleNumber: 3,
+  },
   {
     keywords: ['tide', 'detergent', 'downy', 'gain', 'laundry', 'fabric softener', 'bleach', 'stain remover'],
     categoryName: 'Laundry & Detergent',
@@ -32,14 +53,21 @@ export const WALMART_DEPARTMENT_TAXONOMY: CategoryMapping[] = [
     aisleNumber: 26,
   },
   {
-    keywords: ['shampoo', 'conditioner', 'soap', 'body wash', 'toothpaste', 'deodorant', 'razor', 'lotion'],
-    categoryName: 'Personal Care & Hygiene',
+    keywords: ['shampoo', 'conditioner', 'soap', 'body wash', 'toothpaste', 'deodorant', 'razor', 'lotion', 'band aid', 'vitamins'],
+    categoryName: 'Personal Care & Pharmacy',
     zoneId: 'ZONE_1_HOUSEHOLD',
     aisleTag: 'Aisle A32',
     aisleNumber: 32,
   },
 
-  // ZONE 2: Heavy Dry Pantry & Center Aisles (Aisles A1 - A25)
+  // ZONE 2: Heavy Dry Pantry & Specialty Aisles (Aisles A1 - A25)
+  {
+    keywords: ['gluten free pasta', 'gluten-free pasta', 'almond flour', 'chia seeds', 'flax seed', 'keto tortilla', 'keto tortillas', 'gluten free flour', 'organic rice'],
+    categoryName: 'Specialty & Organic Grains',
+    zoneId: 'ZONE_2_PANTRY_DRY',
+    aisleTag: 'Aisle A4',
+    aisleNumber: 4,
+  },
   {
     keywords: ['soup', 'soups', 'campbell', 'progresso', 'broth', 'ramen', 'noodle soup', 'canned tomato', 'tomato paste', 'canned beans', 'black beans', 'pinto beans', 'baked beans', 'canned corn', 'green beans', 'canned tuna', 'canned chicken'],
     categoryName: 'Canned Goods & Soups',
@@ -124,6 +152,13 @@ export const WALMART_DEPARTMENT_TAXONOMY: CategoryMapping[] = [
 
   // ZONE 5: Produce & Bakery (Door-Adjacent & Delicate Goods)
   {
+    keywords: ['gluten free bread', 'gluten-free bread', 'keto bread', 'udi bread', 'canyon bakehouse'],
+    categoryName: 'Specialty Bakery (GF)',
+    zoneId: 'ZONE_5_PRODUCE_BAKERY',
+    aisleTag: 'Bakery A5',
+    aisleNumber: 74,
+  },
+  {
     keywords: ['banana', 'bananas', 'apple', 'apples', 'avocado', 'avocados', 'strawberry', 'strawberries', 'blueberry', 'blueberries', 'grapes', 'lemon', 'lemons', 'lime', 'limes', 'orange', 'oranges', 'tomato', 'tomatoes', 'onion', 'onions', 'potato', 'potatoes', 'garlic', 'lettuce', 'spinach', 'salad', 'salad kit', 'cucumber', 'carrots', 'broccoli', 'peppers', 'bell pepper', 'floral', 'flowers'],
     categoryName: 'Fresh Produce',
     zoneId: 'ZONE_5_PRODUCE_BAKERY',
@@ -181,6 +216,8 @@ export const SHORTHAND_DICTIONARY: Record<string, string> = {
   'avos': 'Avocados',
   'tots': 'Tater Tots',
   'b-scuits': 'Biscuits',
+  'gf bread': 'Gluten Free Bread',
+  'gf pasta': 'Gluten Free Pasta',
 };
 
 export function classifyGroceryItem(rawText: string): {
