@@ -5,75 +5,124 @@ export interface Point2D {
   y: number; // percentage 0 to 100 on canvas
 }
 
-export const STORE_ENTRANCE_POINT: Point2D = { x: 78, y: 92 }; // Grocery Entrance (Anna, TX)
+export const STORE_ENTRANCE_POINT: Point2D = { x: 88, y: 92 }; // Grocery Entrance (Anna, TX)
 export const STORE_CHECKOUT_POINT: Point2D = { x: 50, y: 88 }; // Registers Z1 - Z43
 
 export function getItemCoordinates(item: MappedGroceryItem): Point2D {
   const lowerAisle = item.aisleTag.toLowerCase();
   const num = item.aisleNumber;
 
-  // Grocery Aisles A1 through A32 (Center-Right Grocery Block in Anna Supercenter)
+  // 1. Specific Department Codes & Overrides
+  if (lowerAisle.includes('deli') || lowerAisle.includes('ad1')) {
+    return { x: 68, y: 82 };
+  }
+  if (lowerAisle.includes('bakery')) {
+    return { x: 92, y: 72 };
+  }
+  if (lowerAisle.includes('produce')) {
+    return { x: 82, y: 76 };
+  }
+  if (lowerAisle.includes('dairy') || lowerAisle.includes('a33')) {
+    return { x: 74, y: 11 };
+  }
+  if (lowerAisle.includes('meat') || lowerAisle.includes('a34') || lowerAisle.includes('a35')) {
+    return { x: 92, y: 44 };
+  }
+
+  // 2. Center-Right Horizontal Grocery Aisles (A1 through A31)
   if (lowerAisle.startsWith('aisle a') || lowerAisle.startsWith('a')) {
-    if (num >= 31) return { x: 80, y: 20 }; // A31 (odd top face) / A32 (even bottom face) - Cleaning
-    if (num >= 29) return { x: 80, y: 23 }; // A29 / A30 - Cleaning
-    if (num >= 27) return { x: 80, y: 26 }; // A27 / A28 - Household Paper
-    if (num >= 25) return { x: 80, y: 29 }; // A25 / A26 - Household / Snacks
-    if (num >= 23) return { x: 80, y: 32 }; // A23 / A24 - Snacks & Bev
-    if (num >= 21) return { x: 80, y: 35 }; // A21 / A22 - Snacks
-    if (num >= 19) return { x: 80, y: 38 }; // A19 / A20 - Grocery
-    if (num >= 17) return { x: 80, y: 41 }; // A17 / A18 - Grocery
-    if (num >= 15) return { x: 80, y: 44 }; // A15 / A16 - Grocery
-    if (num >= 13) return { x: 80, y: 47 }; // A13 / A14 - Grocery
-    if (num >= 11) return { x: 80, y: 50 }; // A11 / A12 - Grocery
-    if (num >= 9)  return { x: 80, y: 53 }; // A9 / A10 - Alcohol / Bev
-    if (num >= 7)  return { x: 80, y: 56 }; // A7 / A8 - Alcohol / Bev
-    if (num >= 5)  return { x: 80, y: 59 }; // A5 / A6 - Food / Pantry
-    if (num >= 3)  return { x: 80, y: 62 }; // A3 / A4 - Frozen Cases
-    if (num >= 1)  return { x: 80, y: 65 }; // A1 / A2 - Frozen Cases
+    if (num >= 31) return { x: 74, y: 19 }; // A31 Cleaning
+    if (num >= 29) return { x: 74, y: 23 }; // A29 Cleaning
+    if (num >= 27) return { x: 74, y: 27 }; // A27 Household Paper
+    if (num >= 25) return { x: 74, y: 31 }; // A25 Household / Snacks
+    if (num >= 23) return { x: 74, y: 35 }; // A23 Snacks & Bev
+    if (num >= 21) return { x: 74, y: 39 }; // A21 Snacks
+    if (num >= 19) return { x: 74, y: 43 }; // A19 Grocery
+    if (num >= 17) return { x: 74, y: 47 }; // A17 Grocery
+    if (num >= 15) return { x: 74, y: 51 }; // A15 Grocery
+    if (num >= 13) return { x: 74, y: 55 }; // A13 Grocery
+    if (num >= 11) return { x: 74, y: 59 }; // A11 Grocery
+    if (num >= 9)  return { x: 74, y: 63 }; // A9 Alcohol / Bev
+    if (num >= 7)  return { x: 74, y: 67 }; // A7 Alcohol / Bev
+    if (num >= 5)  return { x: 74, y: 71 }; // A5 Pantry / Food
+    if (num >= 3)  return { x: 74, y: 75 }; // A3 Frozen
+    if (num >= 1)  return { x: 74, y: 79 }; // A1 Frozen
   }
 
-  // Zone 1: Household, Baby, Toys, Pets, Health & Beauty (Anna Layout)
+  // 3. General Merchandise Letter Aisles
+  // Health & Beauty (G1–G37)
+  if (lowerAisle.startsWith('g')) {
+    return { x: 30, y: 82 };
+  }
+  // Apparel & Shoes (B/C/D/E)
+  if (lowerAisle.startsWith('b') || lowerAisle.startsWith('c') || lowerAisle.startsWith('d')) {
+    return { x: 32, y: 64 };
+  }
+  // Baby (E1–E15)
+  if (lowerAisle.startsWith('e')) {
+    return { x: 44, y: 48 };
+  }
+  // Home, Kitchen, Bedding, Bath, Laundry (H1–H53)
+  if (lowerAisle.startsWith('h')) {
+    if (num >= 37) return { x: 34, y: 18 }; // Furniture / Laundry
+    if (num >= 25) return { x: 24, y: 28 }; // Bedding / Bath
+    if (num >= 19) return { x: 34, y: 34 }; // Kitchen
+    return { x: 24, y: 42 }; // Home
+  }
+  // Toys & Games (I1–I17), Sports (I19–I27)
+  if (lowerAisle.startsWith('i')) {
+    if (num >= 19) return { x: 14, y: 22 }; // Sports
+    return { x: 14, y: 32 }; // Toys
+  }
+  // Pets (J1–J9), Arts & Crafts (J11–J23)
+  if (lowerAisle.startsWith('j')) {
+    if (num >= 11) return { x: 44, y: 12 }; // Arts & Crafts
+    return { x: 54, y: 12 }; // Pets
+  }
+  // Electronics (K11–K21)
+  if (lowerAisle.startsWith('k')) {
+    return { x: 46, y: 12 };
+  }
+  // Hardware & Auto (L1–L27, X1–X3)
+  if (lowerAisle.startsWith('l') || lowerAisle.startsWith('x')) {
+    if (num >= 19) return { x: 14, y: 12 }; // Auto
+    return { x: 26, y: 12 }; // Hardware & Paint
+  }
+  // Garden Center (Y1–Y35)
+  if (lowerAisle.startsWith('y')) {
+    return { x: 8, y: 72 };
+  }
+  // Clearance / Party / Office (F1–F27)
+  if (lowerAisle.startsWith('f')) {
+    return { x: 44, y: 28 };
+  }
+
+  // 4. Zone Fallback Positions
   if (item.zoneId === 'ZONE_1_HOUSEHOLD') {
-    if (lowerAisle.startsWith('e') || lowerAisle.includes('baby')) return { x: 58, y: 38 }; // Baby E1–E9
-    if (lowerAisle.startsWith('i') || lowerAisle.includes('toy')) return { x: 12, y: 38 }; // Toys I1–I27
-    if (lowerAisle.startsWith('j') || lowerAisle.includes('pet')) return { x: 62, y: 15 }; // Pets J1–J21
-    if (lowerAisle.startsWith('g')) return { x: 22, y: 78 }; // Health & Beauty G1–G37
-    if (num >= 30) return { x: 80, y: 23 }; // A29 / A30 - Detergent / Cleaning
-    if (num >= 28) return { x: 80, y: 26 }; // A27 / A28 - Paper Goods
-    return { x: 80, y: 29 }; // A25 / A26
+    if (num >= 28) return { x: 74, y: 27 };
+    return { x: 74, y: 31 };
   }
-
-  // Zone 2: Heavy Dry Pantry
   if (item.zoneId === 'ZONE_2_PANTRY_DRY') {
-    if (num <= 4) return { x: 80, y: 59 }; // Pasta / Canned (A4/A5)
-    if (num <= 10) return { x: 80, y: 53 }; // Spices / Oils (A7-A10)
-    if (num <= 16) return { x: 80, y: 44 }; // Cereal / Coffee (A11-A16)
-    if (num <= 22) return { x: 80, y: 35 }; // Snacks / Chips (A17-A22)
-    return { x: 80, y: 32 }; // Beverages (A23-A26)
+    if (num <= 4) return { x: 74, y: 71 };
+    if (num <= 10) return { x: 74, y: 63 };
+    if (num <= 16) return { x: 74, y: 51 };
+    if (num <= 22) return { x: 74, y: 39 };
+    return { x: 74, y: 35 };
   }
-
-  // Zone 3: Meat & Seafood (Right Perimeter Wall A34/A35/AC1 in Anna Layout)
-  if (item.zoneId === 'ZONE_3_MEAT' || lowerAisle.includes('meat') || lowerAisle.includes('a34') || lowerAisle.includes('a35')) {
-    return { x: 94, y: 40 };
+  if (item.zoneId === 'ZONE_3_MEAT') {
+    return { x: 92, y: 44 };
   }
-
-  // Zone 4: Dairy Wall (Top Right Back Wall in Anna Layout)
-  if (item.zoneId === 'ZONE_4_DAIRY' || lowerAisle.includes('dairy') || lowerAisle.includes('a33')) {
-    return { x: 80, y: 14 };
+  if (item.zoneId === 'ZONE_4_DAIRY') {
+    return { x: 74, y: 11 };
   }
-
-  // Zone 5: Produce & Bakery (Front Right Door Area in Anna Layout)
   if (item.zoneId === 'ZONE_5_PRODUCE_BAKERY') {
-    if (lowerAisle.includes('bakery') || lowerAisle.includes('ac1')) return { x: 94, y: 65 };
-    return { x: 80, y: 72 }; // Fresh Produce Diagonal Tables
+    return { x: 82, y: 76 };
+  }
+  if (item.zoneId === 'ZONE_6_FROZEN') {
+    return { x: 74, y: 77 };
   }
 
-  // Zone 6: Frozen Foods & Ice Cream (A1 - A4 Area)
-  if (item.zoneId === 'ZONE_6_FROZEN' || lowerAisle.includes('frozen')) {
-    return { x: 80, y: 63 };
-  }
-
-  // Zone 7: Front End / Checkout (Registers Z1 - Z43)
+  // Zone 7: Checkout
   return { x: 50, y: 88 };
 }
 
