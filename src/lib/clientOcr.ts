@@ -1,4 +1,4 @@
-import { createWorker } from 'tesseract.js';
+import { createWorker, PSM } from 'tesseract.js';
 import { SHORTHAND_DICTIONARY } from './storeDatabase';
 
 /**
@@ -100,7 +100,7 @@ export async function parseHandwrittenListImage(
     });
 
     await worker.setParameters({
-      tessedit_pageseg_mode: '6', // PSM 6: Single uniform block of text lines
+      tessedit_pageseg_mode: PSM.SINGLE_BLOCK, // PSM 6: Single uniform block of text lines
       tessedit_char_whitelist: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%&\'()-/\\. ',
     });
 
