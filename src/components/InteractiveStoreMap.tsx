@@ -25,6 +25,8 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const initialPinchDistRef = useRef<number | null>(null);
+  const initialZoomRef = useRef<number>(1);
 
   const handleZoomIn = () => {
     setZoomLevel((prev) => Math.min(prev + 0.5, 5.0));
@@ -64,8 +66,8 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
     };
 
     const handleTouchMoveNative = (e: TouchEvent) => {
-      if (e.touches.length === 1) {
-        // Lock mobile browser page scroll while panning the map
+      // Prevent mobile page scroll during single-finger pan or two-finger pinch
+      if (e.touches.length === 1 || e.touches.length === 2) {
         e.preventDefault();
       }
     };
@@ -78,7 +80,7 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
     };
   }, []);
 
-  // Mouse & Touch Drag Handlers
+  // Mouse & Touch Drag & Pinch Handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     if (zoomLevel <= 1) return;
     setIsDragging(true);
@@ -98,6 +100,16 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      // Record initial distance for two-finger pinch zoom
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      initialPinchDistRef.current = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      initialZoomRef.current = zoomLevel;
+      setIsDragging(false);
+      return;
+    }
+
     if (zoomLevel <= 1 || e.touches.length !== 1) return;
     setIsDragging(true);
     const touch = e.touches[0];
@@ -105,6 +117,17 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && initialPinchDistRef.current) {
+      // Dynamic two-finger pinch-to-zoom
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const ratio = currentDist / initialPinchDistRef.current;
+      const targetZoom = Math.min(Math.max(initialZoomRef.current * ratio, 1.0), 5.0);
+      setZoomLevel(targetZoom);
+      return;
+    }
+
     if (!isDragging || zoomLevel <= 1 || e.touches.length !== 1) return;
     const touch = e.touches[0];
     const maxOffset = (zoomLevel - 1) * 220;
@@ -115,6 +138,7 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
 
   const handleTouchEnd = () => {
     setIsDragging(false);
+    initialPinchDistRef.current = null;
   };
 
   // Compute waypoint sequence: Entrance -> Items -> Checkout

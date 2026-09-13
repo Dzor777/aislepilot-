@@ -7,12 +7,14 @@ import { WALMART_ZONES } from '@/sampleData/walmartStores';
 
 interface ItemCardProps {
   item: MappedGroceryItem;
+  itemIndex?: number;
   onToggleComplete: (id: string) => void;
   onEditAisleLocation: (id: string, newAisleTag: string, newAisleNumber: number) => void;
 }
 
 export const ItemCard: React.FC<ItemCardProps> = ({
   item,
+  itemIndex,
   onToggleComplete,
   onEditAisleLocation,
 }) => {
@@ -56,13 +58,20 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         {/* Item Information & Aisle Badge */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-1">
-            <span
-              className={`font-bold text-base tracking-tight truncate ${
-                item.completed ? 'line-through text-slate-500' : 'text-white'
-              }`}
-            >
-              {item.cleanName}
-            </span>
+            <div className="flex items-center gap-1.5 min-w-0">
+              {itemIndex !== undefined && (
+                <span className="px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[10px] font-black shrink-0">
+                  #{itemIndex}
+                </span>
+              )}
+              <span
+                className={`font-bold text-base tracking-tight truncate ${
+                  item.completed ? 'line-through text-slate-500' : 'text-white'
+                }`}
+              >
+                {item.cleanName}
+              </span>
+            </div>
 
             {/* High Contrast Aisle Badge */}
             {isEditingAisle ? (

@@ -8,7 +8,7 @@ import { InteractiveStoreMap } from './InteractiveStoreMap';
 import { AddItemModal } from './AddItemModal';
 import { TripSummaryModal } from './TripSummaryModal';
 import { groupItemsByZone } from '@/lib/routeOptimizer';
-import { CheckCircle2, Plus, Map, List, Snowflake, ArrowLeft } from 'lucide-react';
+import { CheckCircle2, Plus, Map as MapIcon, List, Snowflake, ArrowLeft } from 'lucide-react';
 
 interface RouteViewProps {
   items: MappedGroceryItem[];
@@ -83,7 +83,7 @@ export const RouteView: React.FC<RouteViewProps> = ({
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Map className="w-3.5 h-3.5" />
+              <MapIcon className="w-3.5 h-3.5" />
               <span>Interactive Map Route</span>
             </button>
             <button
@@ -151,48 +151,57 @@ export const RouteView: React.FC<RouteViewProps> = ({
           </div>
         </div>
 
-        {(Object.keys(groupedZones) as WalmartZoneId[]).map((zoneId) => {
-          const zoneItems = groupedZones[zoneId].filter((item) => {
-            if (filterMode === 'active') return !item.completed;
-            if (filterMode === 'completed') return item.completed;
-            return true;
+        {/* Compute 1-based route step index for every item */}
+        {(() => {
+          const itemRouteIndexMap = new Map<string, number>();
+          items.forEach((item, index) => {
+            itemRouteIndexMap.set(item.id, index + 1);
           });
 
-          if (zoneItems.length === 0) return null;
+          return (Object.keys(groupedZones) as WalmartZoneId[]).map((zoneId) => {
+            const zoneItems = groupedZones[zoneId].filter((item) => {
+              if (filterMode === 'active') return !item.completed;
+              if (filterMode === 'completed') return item.completed;
+              return true;
+            });
 
-          const zoneInfo = WALMART_ZONES[zoneId];
-          const isZoneComplete = zoneItems.every((i) => i.completed);
+            if (zoneItems.length === 0) return null;
 
-          return (
-            <div
-              key={zoneId}
-              className="rounded-2xl border border-slate-800 bg-slate-900/80 p-3 space-y-2.5"
-            >
-              <div className="flex items-center justify-between pb-1">
-                <span className={`px-2.5 py-1 rounded-lg text-xs font-extrabold border ${zoneInfo.badgeBg}`}>
-                  {zoneInfo.shortName}
-                </span>
-                {isZoneComplete && (
-                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Done
+            const zoneInfo = WALMART_ZONES[zoneId];
+            const isZoneComplete = zoneItems.every((i) => i.completed);
+
+            return (
+              <div
+                key={zoneId}
+                className="rounded-2xl border border-slate-800 bg-slate-900/80 p-3 space-y-2.5"
+              >
+                <div className="flex items-center justify-between pb-1">
+                  <span className={`px-2.5 py-1 rounded-lg text-xs font-extrabold border ${zoneInfo.badgeBg}`}>
+                    {zoneInfo.shortName}
                   </span>
-                )}
-              </div>
+                  {isZoneComplete && (
+                    <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Done
+                    </span>
+                  )}
+                </div>
 
-              <div className="space-y-2">
-                {zoneItems.map((item) => (
-                  <ItemCard
-                    key={item.id}
-                    item={item}
-                    onToggleComplete={onToggleComplete}
-                    onEditAisleLocation={onEditAisleLocation}
-                  />
-                ))}
+                <div className="space-y-2">
+                  {zoneItems.map((item) => (
+                    <ItemCard
+                      key={item.id}
+                      item={item}
+                      itemIndex={itemRouteIndexMap.get(item.id)}
+                      onToggleComplete={onToggleComplete}
+                      onEditAisleLocation={onEditAisleLocation}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          });
+        })()}
       </div>
 
       {/* Floating Action Button: Add Item Mid-Trip */}
