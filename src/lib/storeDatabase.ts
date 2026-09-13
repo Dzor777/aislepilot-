@@ -183,7 +183,7 @@ export const WALMART_DEPARTMENT_TAXONOMY: CategoryMapping[] = [
 
   // ZONE 3: Fresh Meat & Seafood (Right Perimeter Wall)
   {
-    keywords: ['ground beef', 'steak', 'beef', 'roast beef', 'ribeye', 'sirloin', 'chicken', 'chicken breast', 'chicken thighs', 'wings', 'turkey', 'ground turkey', 'pork', 'pork chops', 'bacon', 'sausage', 'salmon', 'shrimp', 'tilapia', 'fish fillet', 'crab', 'lobster'],
+    keywords: ['ground beef', 'steak', 'steaks', 'beef', 'roast beef', 'ribeye', 'sirloin', 'chicken', 'chicken breast', 'chicken thighs', 'wings', 'turkey', 'ground turkey', 'pork', 'pork chops', 'bacon', 'sausage', 'salmon', 'shrimp', 'tilapia', 'fish fillet', 'crab', 'lobster'],
     categoryName: 'Fresh Meat & Seafood',
     zoneId: 'ZONE_3_MEAT',
     aisleTag: 'Meat Wall A34',
@@ -326,10 +326,12 @@ export function classifyGroceryItem(rawText: string): {
 
   const searchTarget = expanded.toLowerCase();
 
-  // Search taxonomy for keyword match
+  // Search taxonomy for whole-word keyword match (prevents 'steak' matching 'tea' inside 's-t-e-a-k')
   for (const category of WALMART_DEPARTMENT_TAXONOMY) {
     for (const keyword of category.keywords) {
-      if (searchTarget.includes(keyword)) {
+      const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const wordBoundaryRegex = new RegExp(`\\b${escaped}\\b`, 'i');
+      if (wordBoundaryRegex.test(searchTarget)) {
         return {
           cleanName: expanded,
           category: category.categoryName,
