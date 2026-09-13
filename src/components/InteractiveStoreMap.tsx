@@ -27,12 +27,12 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 0.4, 3.5));
+    setZoomLevel((prev) => Math.min(prev + 0.5, 5.0));
   };
 
   const handleZoomOut = () => {
     setZoomLevel((prev) => {
-      const next = Math.max(prev - 0.4, 1);
+      const next = Math.max(prev - 0.5, 1);
       if (next === 1) setPanOffset({ x: 0, y: 0 });
       return next;
     });
@@ -43,7 +43,7 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
     setPanOffset({ x: 0, y: 0 });
   };
 
-  // Lock Page Scrolling during Map Mouse Wheel Zoom
+  // Lock Page Scrolling during Map Mouse Wheel Zoom & Mobile Touch Pan
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -53,19 +53,28 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
       e.stopPropagation();
 
       if (e.deltaY < 0) {
-        setZoomLevel((prev) => Math.min(prev + 0.3, 3.5));
+        setZoomLevel((prev) => Math.min(prev + 0.5, 5.0));
       } else {
         setZoomLevel((prev) => {
-          const next = Math.max(prev - 0.3, 1);
+          const next = Math.max(prev - 0.5, 1);
           if (next === 1) setPanOffset({ x: 0, y: 0 });
           return next;
         });
       }
     };
 
+    const handleTouchMoveNative = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        // Lock mobile browser page scroll while panning the map
+        e.preventDefault();
+      }
+    };
+
     el.addEventListener('wheel', handleWheelNative, { passive: false });
+    el.addEventListener('touchmove', handleTouchMoveNative, { passive: false });
     return () => {
       el.removeEventListener('wheel', handleWheelNative);
+      el.removeEventListener('touchmove', handleTouchMoveNative);
     };
   }, []);
 
@@ -78,7 +87,7 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || zoomLevel <= 1) return;
-    const maxOffset = (zoomLevel - 1) * 140;
+    const maxOffset = (zoomLevel - 1) * 220;
     const newX = Math.min(Math.max(e.clientX - dragStartRef.current.x, -maxOffset), maxOffset);
     const newY = Math.min(Math.max(e.clientY - dragStartRef.current.y, -maxOffset), maxOffset);
     setPanOffset({ x: newX, y: newY });
@@ -98,7 +107,7 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging || zoomLevel <= 1 || e.touches.length !== 1) return;
     const touch = e.touches[0];
-    const maxOffset = (zoomLevel - 1) * 140;
+    const maxOffset = (zoomLevel - 1) * 220;
     const newX = Math.min(Math.max(touch.clientX - dragStartRef.current.x, -maxOffset), maxOffset);
     const newY = Math.min(Math.max(touch.clientY - dragStartRef.current.y, -maxOffset), maxOffset);
     setPanOffset({ x: newX, y: newY });
@@ -177,7 +186,7 @@ export const InteractiveStoreMap: React.FC<InteractiveStoreMapProps> = ({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`relative w-full aspect-[16/10] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-inner select-none ${
+        className={`relative w-full aspect-[16/10] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-inner select-none touch-none ${
           zoomLevel > 1 ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-default'
         }`}
       >
