@@ -118,7 +118,7 @@ export class CacheManager {
 
   // --- 2. SAVED LIST TEMPLATES ---
   public static getSavedTemplates(): import('./types').SavedListTemplate[] {
-    const presets: import('./types').SavedListTemplate[] = [
+    const defaultPresets: import('./types').SavedListTemplate[] = [
       {
         id: 'preset-sunday-staples',
         title: 'Sunday Family Staples',
@@ -157,15 +157,21 @@ export class CacheManager {
       },
     ];
 
-    if (typeof window === 'undefined') return presets;
+    if (typeof window === 'undefined') return defaultPresets;
     try {
+      // Get list of deleted preset IDs
+      const deletedPresetsRaw = localStorage.getItem('aislepilot_deleted_preset_templates') || '[]';
+      const deletedPresetIds: string[] = JSON.parse(deletedPresetsRaw);
+
+      const activePresets = defaultPresets.filter((p) => !deletedPresetIds.includes(p.id));
+
       const raw = localStorage.getItem('aislepilot_saved_templates');
-      if (!raw) return presets;
+      if (!raw) return activePresets;
       const custom: import('./types').SavedListTemplate[] = JSON.parse(raw);
-      return [...presets, ...custom];
+      return [...activePresets, ...custom];
     } catch (e) {
       console.warn('Error reading saved templates', e);
-      return presets;
+      return defaultPresets;
     }
   }
 
@@ -191,15 +197,36 @@ export class CacheManager {
     return newTemplate;
   }
 
-  public static deleteCustomTemplate(id: string): void {
+  public static deleteTemplate(id: string): void {
     if (typeof window === 'undefined') return;
     try {
-      const existing = this.getSavedTemplates().filter((t) => !t.isPreset && t.id !== id);
-      localStorage.setItem('aislepilot_saved_templates', JSON.stringify(existing));
+      if (id.startsWith('preset-')) {
+        // Mark preset template as deleted
+        const deletedRaw = localStorage.getItem('aislepilot_deleted_preset_templates') || '[]';
+        const deletedPresetIds: string[] = JSON.parse(deletedRaw);
+        if (!deletedPresetIds.includes(id)) {
+          deletedPresetIds.push(id);
+          localStorage.setItem('aislepilot_deleted_preset_templates', JSON.stringify(deletedPresetIds));
+        }
+      } else {
+        // Delete custom template
+        const customTemplates = this.getSavedTemplates().filter((t) => !t.isPreset && t.id !== id);
+        localStorage.setItem('aislepilot_saved_templates', JSON.stringify(customTemplates));
+      }
     } catch (e) {
-      console.warn('Error deleting custom template', e);
+      console.warn('Error deleting template', e);
     }
   }
+
+  public static resetDefaultPresets(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem('aislepilot_deleted_preset_templates');
+    } catch (e) {
+      console.warn('Error resetting default templates', e);
+    }
+  }
+
 
   // --- 3. COMPLETED TRIP HISTORY & ANALYTICS ---
   public static getCompletedTripHistory(): import('./types').CompletedTripRecord[] {
