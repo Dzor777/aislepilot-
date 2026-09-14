@@ -158,12 +158,30 @@ export const RouteView: React.FC<RouteViewProps> = ({
             itemRouteIndexMap.set(item.id, index + 1);
           });
 
-          return (Object.keys(groupedZones) as WalmartZoneId[]).map((zoneId) => {
-            const zoneItems = groupedZones[zoneId].filter((item) => {
-              if (filterMode === 'active') return !item.completed;
-              if (filterMode === 'completed') return item.completed;
-              return true;
+          // Dynamically sort zone sections by the route sequence of their first item
+          const sortedZoneIds = (Object.keys(groupedZones) as WalmartZoneId[])
+            .filter((zoneId) => groupedZones[zoneId].length > 0)
+            .sort((zoneA, zoneB) => {
+              const minA = Math.min(
+                ...groupedZones[zoneA].map((i) => itemRouteIndexMap.get(i.id) ?? 999)
+              );
+              const minB = Math.min(
+                ...groupedZones[zoneB].map((i) => itemRouteIndexMap.get(i.id) ?? 999)
+              );
+              return minA - minB;
             });
+
+          return sortedZoneIds.map((zoneId) => {
+            const zoneItems = groupedZones[zoneId]
+              .filter((item) => {
+                if (filterMode === 'active') return !item.completed;
+                if (filterMode === 'completed') return item.completed;
+                return true;
+              })
+              .sort(
+                (a, b) =>
+                  (itemRouteIndexMap.get(a.id) ?? 0) - (itemRouteIndexMap.get(b.id) ?? 0)
+              );
 
             if (zoneItems.length === 0) return null;
 
