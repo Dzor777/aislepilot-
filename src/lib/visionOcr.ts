@@ -5,13 +5,17 @@ import { processExtractedOcrText } from './clientOcr';
 const GEMINI_API_KEY_STORAGE = 'aislepilot_gemini_api_key';
 
 export function getSavedGeminiApiKey(): string {
-  if (typeof window === 'undefined') return '';
+  const envKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+  if (typeof window === 'undefined') return envKey;
   try {
-    return localStorage.getItem(GEMINI_API_KEY_STORAGE) || '';
+    const saved = localStorage.getItem(GEMINI_API_KEY_STORAGE);
+    return saved && saved.trim() ? saved.trim() : envKey;
   } catch (e) {
-    return '';
+    return envKey;
   }
 }
+
+
 
 export function saveGeminiApiKey(apiKey: string): void {
   if (typeof window === 'undefined') return;
