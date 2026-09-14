@@ -82,8 +82,8 @@ export async function parseHandwrittenListWithGemini(
 
   const cleanKey = apiKey.trim();
   
-  // Model list to try in order (if primary model gives non-200, try fallbacks)
-  const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash-exp', 'gemini-2.5-flash', 'gemini-1.5-pro'];
+  // Model list to try in order (using active Google Gemini 3.6 & 3.5 Flash Vision models)
+  const modelsToTry = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.1-pro-preview', 'gemini-3.5-flash-lite'];
   let lastErrorMsg = '';
 
   for (const model of modelsToTry) {

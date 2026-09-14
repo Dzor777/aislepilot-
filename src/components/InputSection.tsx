@@ -91,7 +91,7 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
     } catch (err: any) {
       console.warn('Gemini Vision AI error:', err);
       setIsProcessingOcr(false);
-      setOcrErrorMessage(`Gemini AI error: ${err.message || 'API key invalid. Please paste a key starting with AIzaSy.'}`);
+      setOcrErrorMessage(`Gemini AI error: ${err.message || 'Error communicating with Google Gemini API.'}`);
       setIsKeyDrawerOpen(true);
     }
   };
