@@ -81,46 +81,66 @@ export async function parseHandwrittenListWithGemini(
 
 
   const cleanKey = apiKey.trim();
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cleanKey}`;
+  
+  // Model list to try in order (if primary model gives non-200, try fallbacks)
+  const modelsToTry = ['gemini-1.5-flash', 'gemini-2.0-flash-exp', 'gemini-2.5-flash', 'gemini-1.5-pro'];
+  let lastErrorMsg = '';
 
-  const payload = {
-    contents: [
-      {
-        parts: [
-          {
-            text: 'Extract all grocery and shopping list items from this handwritten or printed paper list image. Return ONLY plain text lines with one item per line. Do not include markdown bullet points, numbers, conversational intro, or headers.',
-          },
-          {
-            inline_data: {
-              mime_type: mimeType,
-              data: base64Image,
+  for (const model of modelsToTry) {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`;
+
+    const payload = {
+      contents: [
+        {
+          parts: [
+            {
+              text: 'Extract all grocery and shopping list items from this handwritten or printed paper list image. Return ONLY plain text lines with one item per line. Do not include markdown bullet points, numbers, conversational intro, or headers.',
             },
-          },
-        ],
-      },
-    ],
-  };
+            {
+              inline_data: {
+                mime_type: mimeType,
+                data: base64Image,
+              },
+            },
+          ],
+        },
+      ],
+    };
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': cleanKey,
-      'Authorization': `Bearer ${cleanKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': cleanKey,
+        },
+        body: JSON.stringify(payload),
+      });
 
-  if (!response.ok) {
-    const errData = await response.json().catch(() => ({}));
-    const errMsg = errData.error?.message || `HTTP ${response.status}`;
-    throw new Error(`Gemini Vision AI error: ${errMsg}`);
+      if (response.ok) {
+        const data = await response.json();
+        const rawResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (onProgress) onProgress('Cleaning extracted items...');
+        return processExtractedOcrText(rawResponseText);
+      }
+
+      const errData = await response.json().catch(() => ({}));
+      lastErrorMsg = errData.error?.message || `HTTP ${response.status}`;
+      console.warn(`Gemini model ${model} failed: ${lastErrorMsg}`);
+      
+      // If error is authentication/key issue, don't loop through models as key won't change
+      if (response.status === 400 || response.status === 401 || response.status === 403) {
+        if (lastErrorMsg.toLowerCase().includes('api key') || lastErrorMsg.toLowerCase().includes('invalid')) {
+          throw new Error(`Gemini Vision AI error: ${lastErrorMsg}`);
+        }
+      }
+    } catch (e: any) {
+      if (e.message?.startsWith('Gemini Vision AI error:')) {
+        throw e;
+      }
+      lastErrorMsg = e.message || String(e);
+    }
   }
 
-  const data = await response.json();
-  const rawResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-  if (onProgress) onProgress('Cleaning extracted items...');
-
-  return processExtractedOcrText(rawResponseText);
+  throw new Error(`Gemini Vision AI error: ${lastErrorMsg}`);
 }
