@@ -66,10 +66,10 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
 
     const savedApiKey = getSavedGeminiApiKey();
 
-    if (!savedApiKey) {
+    if (!savedApiKey || !savedApiKey.startsWith('AIzaSy')) {
       setIsProcessingOcr(false);
       setOcrErrorMessage(
-        'A valid Gemini API key is required for 100% accurate handwriting recognition. Click "Setup Free Key" below to enter a custom key if needed.'
+        'Google AI Studio API keys start with "AIzaSy...". Click "Setup Free Key" below to paste your free key from Google AI Studio (100% free, no credit card needed)!'
       );
       setIsKeyDrawerOpen(true);
       return;
@@ -86,12 +86,12 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
       if (items && items.length > 0) {
         onItemsParsed(items);
       } else {
-        setOcrErrorMessage('No list items were detected in the photo. Please check the image lighting or try another photo.');
+        setOcrErrorMessage('No items were detected in the photo. Please ensure good lighting and try another photo.');
       }
     } catch (err: any) {
       console.warn('Gemini Vision AI error:', err);
       setIsProcessingOcr(false);
-      setOcrErrorMessage(`Gemini AI error: ${err.message || 'API key invalid or request blocked.'}`);
+      setOcrErrorMessage(`Gemini AI error: ${err.message || 'API key invalid. Please paste a key starting with AIzaSy.'}`);
       setIsKeyDrawerOpen(true);
     }
   };
