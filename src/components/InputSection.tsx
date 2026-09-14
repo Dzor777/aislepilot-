@@ -66,10 +66,10 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
 
     const savedApiKey = getSavedGeminiApiKey();
 
-    if (!savedApiKey || !savedApiKey.startsWith('AIzaSy')) {
+    if (!savedApiKey) {
       setIsProcessingOcr(false);
       setOcrErrorMessage(
-        'Google AI Studio API keys start with "AIzaSy...". Click "Setup Free Key" below to paste your free key from Google AI Studio (100% free, no credit card needed)!'
+        'A valid Gemini API key is required. Click "Setup Free Key" below to paste your API key!'
       );
       setIsKeyDrawerOpen(true);
       return;
