@@ -1,6 +1,4 @@
-'use client';
-
-import { processExtractedOcrText } from './clientOcr';
+import { preprocessImageForOcr, processExtractedOcrText } from './clientOcr';
 
 const GEMINI_API_KEY_STORAGE = 'aislepilot_gemini_api_key';
 
@@ -15,8 +13,6 @@ export function getSavedGeminiApiKey(): string {
   }
 }
 
-
-
 export function saveGeminiApiKey(apiKey: string): void {
   if (typeof window === 'undefined') return;
   try {
@@ -27,14 +23,22 @@ export function saveGeminiApiKey(apiKey: string): void {
 }
 
 /**
- * Converts a File or Blob into base64 string
+ * Converts a File or Blob into an optimized base64 string
  */
 export async function fileToBase64(file: File | Blob): Promise<string> {
+  try {
+    const dataUrl = await preprocessImageForOcr(file);
+    if (dataUrl && dataUrl.includes(',')) {
+      return dataUrl.split(',')[1];
+    }
+  } catch (e) {
+    console.warn('Preprocessing error, falling back to raw reader', e);
+  }
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const result = reader.result as string;
-      // Strip data URL prefix e.g. "data:image/jpeg;base64,"
       const base64 = result.includes(',') ? result.split(',')[1] : result;
       resolve(base64);
     };
@@ -55,11 +59,12 @@ export async function parseHandwrittenListWithGemini(
     throw new Error('Gemini API key is required');
   }
 
-  if (onProgress) onProgress('Encoding handwritten photo...');
+  if (onProgress) onProgress('Optimizing photo contrast & resolution...');
   const base64Image = await fileToBase64(imageSource);
-  const mimeType = imageSource.type || 'image/jpeg';
+  const mimeType = 'image/png';
 
   if (onProgress) onProgress('Analyzing handwriting with Gemini 1.5 Flash AI...');
+
 
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
 

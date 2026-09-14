@@ -61,51 +61,38 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
     }
 
     setIsProcessingOcr(true);
-    setOcrProgress(15);
-    setOcrStatus('Processing handwritten photo...');
+    setOcrProgress(20);
+    setOcrStatus('Analyzing handwritten list with Gemini Vision AI...');
 
     const savedApiKey = getSavedGeminiApiKey();
 
-    // Strategy 1: Use Gemini 1.5 Flash Vision AI if Key is provided
-    if (savedApiKey) {
-      try {
-        const items = await parseHandwrittenListWithGemini(file, savedApiKey, (statusText) => {
-          setOcrStatus(statusText);
-          setOcrProgress(60);
-        });
-
-        setIsProcessingOcr(false);
-        if (items.length > 0) {
-          onItemsParsed(items);
-          return;
-        }
-      } catch (err: any) {
-        console.warn('Gemini Vision AI error, attempting local engine:', err);
-        setOcrErrorMessage(`Gemini AI note: ${err.message || 'Falling back to local scanner'}`);
-      }
+    if (!savedApiKey || !savedApiKey.startsWith('AIzaSy')) {
+      setIsProcessingOcr(false);
+      setOcrErrorMessage(
+        'A valid Google AI Studio API key starting with "AIzaSy" is required for 100% accurate handwriting recognition. Click "Setup Free Key" below to paste your free key!'
+      );
+      setIsKeyDrawerOpen(true);
+      return;
     }
 
-    // Strategy 2: Tesseract Browser Engine
+    // Process with Gemini 1.5 Flash Vision AI
     try {
-      const items = await parseHandwrittenListImage(file, (progress, status) => {
-        setOcrProgress(progress);
-        setOcrStatus(status);
+      const items = await parseHandwrittenListWithGemini(file, savedApiKey, (statusText) => {
+        setOcrStatus(statusText);
+        setOcrProgress(60);
       });
 
       setIsProcessingOcr(false);
-      onItemsParsed(items);
-    } catch (e: any) {
-      console.warn('OCR fallback triggered', e);
+      if (items && items.length > 0) {
+        onItemsParsed(items);
+      } else {
+        setOcrErrorMessage('No list items were detected in the photo. Please check the image lighting or try another photo.');
+      }
+    } catch (err: any) {
+      console.warn('Gemini Vision AI error:', err);
       setIsProcessingOcr(false);
-      onItemsParsed([
-        '2% Whole Milk',
-        'Bananas',
-        'Ground Beef',
-        'Tomato Soup',
-        'Honey Nut Cheerios',
-        'Paper Towels',
-        'Ice Cream',
-      ]);
+      setOcrErrorMessage(`Gemini AI error: ${err.message || 'API key invalid or request blocked.'}`);
+      setIsKeyDrawerOpen(true);
     }
   };
 
