@@ -63,3 +63,42 @@ export interface ShoppingTripSummary {
   savedDistanceMeters: number;
   savedMinutes: number;
 }
+
+export interface FamilyUserProfile {
+  id: string;
+  name: string;
+  role: 'Mom' | 'Dad' | 'Kid' | 'Roommate' | 'Custom';
+  avatarColor: string;
+  initials: string;
+}
+
+export interface SavedListTemplate {
+  id: string;
+  title: string;
+  description: string;
+  emoji: string;
+  items: string[];
+  createdAt: number;
+  isPreset?: boolean;
+}
+
+export interface CompletedTripRecord {
+  id: string;
+  storeName: string;
+  storeId: string;
+  date: number; // timestamp
+  itemCount: number;
+  completedItemCount: number;
+  durationSeconds: number;
+  savedFeet: number;
+  items: { cleanName: string; aisleTag: string; completed: boolean }[];
+}
+
+export interface ActiveTripState {
+  items: MappedGroceryItem[];
+  storeId: string;
+  step: 'input' | 'review' | 'route';
+  startTime: number;
+  lastUpdated: number;
+}
+

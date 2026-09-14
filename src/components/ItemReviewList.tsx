@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Trash2, Edit3, Plus, ArrowRight, Check, ListChecks, RefreshCw } from 'lucide-react';
+import { Trash2, Edit3, Plus, ArrowRight, Check, ListChecks, RefreshCw, BookmarkPlus } from 'lucide-react';
+import { CacheManager } from '@/lib/cacheManager';
 
 interface ItemReviewListProps {
   items: string[];
@@ -20,6 +21,11 @@ export const ItemReviewList: React.FC<ItemReviewListProps> = ({
   const [editingText, setEditingText] = useState('');
   const [newItemText, setNewItemText] = useState('');
   const [isAddingItem, setIsAddingItem] = useState(false);
+
+  // Template Save state
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateSuccess, setTemplateSuccess] = useState(false);
 
   const handleStartEdit = (index: number) => {
     setEditingIdx(index);
@@ -49,6 +55,23 @@ export const ItemReviewList: React.FC<ItemReviewListProps> = ({
     }
   };
 
+  const handleSaveTemplateSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!templateName.trim() || items.length === 0) return;
+    CacheManager.saveCustomTemplate(
+      templateName.trim(),
+      `${items.length} custom items saved`,
+      '⭐',
+      items
+    );
+    setTemplateSuccess(true);
+    setTimeout(() => {
+      setTemplateSuccess(false);
+      setIsSavingTemplate(false);
+      setTemplateName('');
+    }, 1500);
+  };
+
   return (
     <div className="w-full max-w-md mx-auto space-y-4 animate-in fade-in duration-300">
       {/* Header Info Banner */}
@@ -68,14 +91,59 @@ export const ItemReviewList: React.FC<ItemReviewListProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={onReset}
-          className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
-          title="Rescan or restart list"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setIsSavingTemplate(true)}
+            disabled={items.length === 0}
+            className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-40"
+            title="Save as template"
+          >
+            <BookmarkPlus className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={onReset}
+            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
+            title="Rescan or restart list"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
       </div>
+
+      {/* Save Template Prompt */}
+      {isSavingTemplate && (
+        <form onSubmit={handleSaveTemplateSubmit} className="p-3.5 rounded-2xl bg-indigo-950/60 border border-indigo-800/80 space-y-2.5 animate-in fade-in">
+          <div className="text-xs font-extrabold text-indigo-200 flex items-center justify-between">
+            <span>Save List as Custom Template</span>
+            {templateSuccess && <span className="text-emerald-400 text-[11px]">Saved! ✓</span>}
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="e.g. My Weekly Staples"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              className="flex-1 bg-slate-900 border border-indigo-700/80 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none"
+              autoFocus
+            />
+            <button
+              type="submit"
+              disabled={!templateName.trim() || templateSuccess}
+              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsSavingTemplate(false)}
+              className="px-2 py-1.5 text-slate-400 hover:text-slate-200 text-xs font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* Item List Container */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-xl space-y-2 max-h-[55vh] overflow-y-auto">
@@ -195,3 +263,4 @@ export const ItemReviewList: React.FC<ItemReviewListProps> = ({
     </div>
   );
 };
+
