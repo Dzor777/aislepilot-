@@ -188,7 +188,7 @@ export const ItemReviewList: React.FC<ItemReviewListProps> = ({
                       <span className="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-mono text-xs flex items-center justify-center font-semibold shrink-0">
                         {idx + 1}
                       </span>
-                      <span className="text-sm font-medium text-slate-200 truncate">
+                      <span className="text-sm font-medium text-slate-200 break-words leading-snug">
                         {item}
                       </span>
                     </div>

@@ -57,15 +57,15 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
         {/* Item Information & Aisle Badge */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <div className="flex items-start gap-1.5 min-w-0 flex-1">
               {itemIndex !== undefined && (
-                <span className="px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[10px] font-black shrink-0">
+                <span className="px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[10px] font-black shrink-0 mt-0.5">
                   #{itemIndex}
                 </span>
               )}
               <span
-                className={`font-bold text-base tracking-tight truncate ${
+                className={`font-bold text-base tracking-tight leading-snug break-words ${
                   item.completed ? 'line-through text-slate-500' : 'text-white'
                 }`}
               >
@@ -75,7 +75,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
             {/* High Contrast Aisle Badge */}
             {isEditingAisle ? (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 shrink-0">
                 <input
                   type="text"
                   value={customAisleInput}
@@ -106,14 +106,14 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
             <span className="flex items-center gap-1 text-[11px] font-medium">
               <Tag className="w-3 h-3 text-slate-500" />
               {item.category}
             </span>
 
             {item.originalText.toLowerCase() !== item.cleanName.toLowerCase() && (
-              <span className="text-[10px] italic text-slate-500 truncate">
+              <span className="text-[10px] italic text-slate-500 break-words">
                 (From &quot;{item.originalText}&quot;)
               </span>
             )}
