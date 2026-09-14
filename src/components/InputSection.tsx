@@ -66,10 +66,10 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
 
     const savedApiKey = getSavedGeminiApiKey();
 
-    if (!savedApiKey || !savedApiKey.startsWith('AIzaSy')) {
+    if (!savedApiKey) {
       setIsProcessingOcr(false);
       setOcrErrorMessage(
-        'A valid Google AI Studio API key starting with "AIzaSy" is required for 100% accurate handwriting recognition. Click "Setup Free Key" below to paste your free key!'
+        'A valid Gemini API key is required for 100% accurate handwriting recognition. Click "Setup Free Key" below to enter a custom key if needed.'
       );
       setIsKeyDrawerOpen(true);
       return;
