@@ -42,9 +42,9 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
   };
 
   // Voice Dictation handler
-  const handleVoiceTranscript = (newTranscript: string) => {
+  const handleVoiceTranscript = React.useCallback((newTranscript: string) => {
     setManualText((prev) => (prev ? `${prev}\n${newTranscript}` : newTranscript));
-  };
+  }, []);
 
   const { isListening, isSupported: isVoiceSupported, toggleListening } = useVoiceInput(handleVoiceTranscript);
 
