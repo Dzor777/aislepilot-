@@ -2,14 +2,37 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
+/**
+ * Cleanly extracts session speech text, removing cumulative repetitions common in Android Chrome
+ */
+export function extractCleanSessionText(results: any): string {
+  if (!results || !results.length) return '';
+
+  const phrases: string[] = [];
+  for (let i = 0; i < results.length; i++) {
+    const text = results[i][0]?.transcript?.trim();
+    if (!text) continue;
+
+    if (phrases.length > 0) {
+      const lastPhrase = phrases[phrases.length - 1];
+      if (text.toLowerCase().startsWith(lastPhrase.toLowerCase())) {
+        phrases[phrases.length - 1] = text;
+        continue;
+      }
+    }
+
+    phrases.push(text);
+  }
+
+  return phrases.join('\n');
+}
+
 export function useVoiceInput(onTranscriptUpdate: (transcript: string) => void) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
   const recognitionRef = useRef<any>(null);
-  const lastProcessedIndexRef = useRef<number>(-1);
   const onTranscriptUpdateRef = useRef(onTranscriptUpdate);
 
-  // Keep callback ref updated to prevent useEffect re-runs
   useEffect(() => {
     onTranscriptUpdateRef.current = onTranscriptUpdate;
   }, [onTranscriptUpdate]);
@@ -33,23 +56,12 @@ export function useVoiceInput(onTranscriptUpdate: (transcript: string) => void) 
 
       recognition.onstart = () => {
         setIsListening(true);
-        lastProcessedIndexRef.current = -1;
       };
 
       recognition.onresult = (event: any) => {
-        let finalChunk = '';
-        for (let i = 0; i < event.results.length; i++) {
-          if (event.results[i].isFinal && i > lastProcessedIndexRef.current) {
-            const transcript = event.results[i][0].transcript.trim();
-            if (transcript) {
-              finalChunk += transcript + '\n';
-            }
-            lastProcessedIndexRef.current = i;
-          }
-        }
-
-        if (finalChunk.trim()) {
-          onTranscriptUpdateRef.current(finalChunk.trim());
+        const cleanSessionText = extractCleanSessionText(event.results);
+        if (cleanSessionText) {
+          onTranscriptUpdateRef.current(cleanSessionText);
         }
       };
 
@@ -68,7 +80,7 @@ export function useVoiceInput(onTranscriptUpdate: (transcript: string) => void) 
         try {
           recognition.stop();
         } catch (e) {
-          // ignore cleanup errors
+          // ignore
         }
       };
     } catch (e) {

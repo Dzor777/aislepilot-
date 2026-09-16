@@ -13,13 +13,25 @@ interface InputSectionProps {
 export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => {
   const [activeTab, setActiveTab] = useState<'text' | 'voice' | 'preset'>('text');
   const [manualText, setManualText] = useState('');
+  const baseTextRef = React.useRef('');
 
   // Voice Dictation handler
-  const handleVoiceTranscript = React.useCallback((newTranscript: string) => {
-    setManualText((prev) => (prev ? `${prev}\n${newTranscript}` : newTranscript));
+  const handleVoiceTranscript = React.useCallback((sessionText: string) => {
+    setManualText(
+      baseTextRef.current
+        ? `${baseTextRef.current}\n${sessionText}`
+        : sessionText
+    );
   }, []);
 
   const { isListening, isSupported: isVoiceSupported, toggleListening } = useVoiceInput(handleVoiceTranscript);
+
+  const handleToggleListening = () => {
+    if (!isListening) {
+      baseTextRef.current = manualText.trim();
+    }
+    toggleListening();
+  };
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +140,7 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
             <div className="space-y-4">
               <button
                 type="button"
-                onClick={toggleListening}
+                onClick={handleToggleListening}
                 className={`w-24 h-24 rounded-full mx-auto flex items-center justify-center transition-all duration-300 shadow-xl cursor-pointer ${
                   isListening
                     ? 'bg-rose-600 text-white animate-pulse shadow-rose-600/50 ring-8 ring-rose-500/30'
