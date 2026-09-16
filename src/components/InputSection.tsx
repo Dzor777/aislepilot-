@@ -12,7 +12,7 @@ interface InputSectionProps {
 }
 
 export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => {
-  const [activeTab, setActiveTab] = useState<'camera' | 'voice' | 'text' | 'preset'>('camera');
+  const [activeTab, setActiveTab] = useState<'text' | 'voice' | 'camera' | 'preset'>('text');
   const [manualText, setManualText] = useState('');
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
@@ -117,15 +117,15 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
       <div className="grid grid-cols-4 gap-1 p-1.5 bg-slate-900 border border-slate-800 rounded-2xl shadow-lg">
         <button
           type="button"
-          onClick={() => setActiveTab('camera')}
+          onClick={() => setActiveTab('text')}
           className={`py-2.5 px-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-            activeTab === 'camera'
+            activeTab === 'text'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
           }`}
         >
-          <Camera className="w-3.5 h-3.5" />
-          <span>Scan</span>
+          <Type className="w-3.5 h-3.5" />
+          <span>Type</span>
         </button>
         <button
           type="button"
@@ -141,18 +141,6 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('text')}
-          className={`py-2.5 px-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-            activeTab === 'text'
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-          }`}
-        >
-          <Type className="w-3.5 h-3.5" />
-          <span>Type</span>
-        </button>
-        <button
-          type="button"
           onClick={() => setActiveTab('preset')}
           className={`py-2.5 px-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
             activeTab === 'preset'
@@ -162,6 +150,18 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
         >
           <Sparkles className="w-3.5 h-3.5 text-amber-300" />
           <span>Demos</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('camera')}
+          className={`py-2.5 px-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+            activeTab === 'camera'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+          }`}
+        >
+          <Camera className="w-3.5 h-3.5" />
+          <span>Scan</span>
         </button>
       </div>
 
