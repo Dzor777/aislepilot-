@@ -1,30 +1,34 @@
 import { preprocessImageForOcr, processExtractedOcrText } from './clientOcr';
 
 const GEMINI_API_KEY_STORAGE = 'aislepilot_gemini_api_key';
-// Built-in runtime-decoded Gemini API key
-const BUILTIN_KEY_B64 = 'QVEuQWI4Uk42SkxkX1otWmJkSE1SYjJ5NmF2N0ZHREFxU3h1WG9fZTJ6YnRXMzIyd2pJSlE=';
 
 export function getSavedGeminiApiKey(): string {
+  const envKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+  if (envKey && envKey.trim()) return envKey.trim();
+
   if (typeof window !== 'undefined') {
     try {
-      localStorage.removeItem(GEMINI_API_KEY_STORAGE);
+      const saved = localStorage.getItem(GEMINI_API_KEY_STORAGE);
+      if (saved && saved.trim()) return saved.trim();
     } catch (e) {
-      // ignore
+      console.warn('Error reading saved API key from localStorage', e);
     }
   }
 
-  try {
-    return atob(BUILTIN_KEY_B64);
-  } catch (e) {
-    return '';
-  }
+  return '';
 }
 
-
-
-
 export function saveGeminiApiKey(apiKey: string): void {
-  // Key is built-in
+  if (typeof window === 'undefined') return;
+  try {
+    if (!apiKey || !apiKey.trim()) {
+      localStorage.removeItem(GEMINI_API_KEY_STORAGE);
+    } else {
+      localStorage.setItem(GEMINI_API_KEY_STORAGE, apiKey.trim());
+    }
+  } catch (e) {
+    console.warn('Error saving Gemini API key to localStorage', e);
+  }
 }
 
 /**
@@ -66,8 +70,10 @@ export async function parseHandwrittenListWithGemini(
 
   if (onProgress) onProgress('Analyzing handwriting with Gemini Flash AI...');
 
-  // Always decode built-in key to ensure 100% validity
-  const cleanKey = (apiKey && apiKey.trim()) || atob(BUILTIN_KEY_B64);
+  const cleanKey = apiKey ? apiKey.trim() : '';
+  if (!cleanKey) {
+    throw new Error('A Gemini API key is required. Please click "Setup Key" to paste your free Google AI Studio key.');
+  }
   
   // Model list to try in order (using active Google Gemini 3.5 & 3.6 Flash Vision models)
   const modelsToTry = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash'];
