@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, Type, Sparkles, Loader2, ArrowRight, Mic, MicOff, Key, ExternalLink, Check, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Type, Sparkles, ArrowRight, Mic, MicOff } from 'lucide-react';
 import { SAMPLE_LIST_PRESETS } from '@/sampleData/sampleLists';
 import { processExtractedOcrText } from '@/lib/clientOcr';
-import { getSavedGeminiApiKey, saveGeminiApiKey, parseHandwrittenListWithGemini } from '@/lib/visionOcr';
 import { useVoiceInput } from '@/lib/useVoiceInput';
 
 interface InputSectionProps {
@@ -12,34 +11,8 @@ interface InputSectionProps {
 }
 
 export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => {
-  const [activeTab, setActiveTab] = useState<'text' | 'voice' | 'camera' | 'preset'>('text');
+  const [activeTab, setActiveTab] = useState<'text' | 'voice' | 'preset'>('text');
   const [manualText, setManualText] = useState('');
-  const [isProcessingOcr, setIsProcessingOcr] = useState(false);
-  const [ocrProgress, setOcrProgress] = useState(0);
-  const [ocrStatus, setOcrStatus] = useState('');
-  const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
-  const [ocrErrorMessage, setOcrErrorMessage] = useState<string | null>(null);
-
-  // Gemini API Key State
-  const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [isKeyDrawerOpen, setIsKeyDrawerOpen] = useState(false);
-  const [keySaveSuccess, setKeySaveSuccess] = useState(false);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setGeminiApiKey(getSavedGeminiApiKey());
-  }, []);
-
-  const handleSaveApiKey = (e: React.FormEvent) => {
-    e.preventDefault();
-    saveGeminiApiKey(geminiApiKey);
-    setKeySaveSuccess(true);
-    setTimeout(() => {
-      setKeySaveSuccess(false);
-      setIsKeyDrawerOpen(false);
-    }, 1200);
-  };
 
   // Voice Dictation handler
   const handleVoiceTranscript = React.useCallback((newTranscript: string) => {
@@ -47,57 +20,6 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
   }, []);
 
   const { isListening, isSupported: isVoiceSupported, toggleListening } = useVoiceInput(handleVoiceTranscript);
-
-  const handleImageFileSelected = async (file: File) => {
-    if (!file) return;
-    setOcrErrorMessage(null);
-
-    // Generate local preview
-    try {
-      const previewUrl = URL.createObjectURL(file);
-      setSelectedImagePreview(previewUrl);
-    } catch (e) {
-      console.warn('Preview error', e);
-    }
-
-    const savedApiKey = getSavedGeminiApiKey();
-
-    if (!savedApiKey) {
-      setOcrErrorMessage('Please click "Setup Free Key" below to paste your free Google AI Studio key once!');
-      setIsKeyDrawerOpen(true);
-      return;
-    }
-
-    setIsProcessingOcr(true);
-    setOcrProgress(20);
-    setOcrStatus('Analyzing handwritten list with Gemini Flash AI...');
-
-    // Process with Gemini Flash Vision AI
-    try {
-      const items = await parseHandwrittenListWithGemini(file, savedApiKey, (statusText) => {
-        setOcrStatus(statusText);
-        setOcrProgress(60);
-      });
-
-      setIsProcessingOcr(false);
-      if (items && items.length > 0) {
-        onItemsParsed(items);
-      } else {
-        setOcrErrorMessage('No items were detected in the photo. Please ensure good lighting and try another photo.');
-      }
-    } catch (err: any) {
-      console.warn('Gemini Vision AI error:', err);
-      setIsProcessingOcr(false);
-      setOcrErrorMessage(`Gemini AI error: ${err.message || 'Error communicating with Google Gemini API.'}`);
-      setIsKeyDrawerOpen(true);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleImageFileSelected(e.target.files[0]);
-    }
-  };
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,201 +36,75 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
   return (
     <div className="w-full max-w-md mx-auto space-y-4 animate-in fade-in duration-300">
       {/* Input Mode Selector Tabs */}
-      <div className="grid grid-cols-4 gap-1 p-1.5 bg-slate-900 border border-slate-800 rounded-2xl shadow-lg">
+      <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-slate-900 border border-slate-800 rounded-2xl shadow-lg">
         <button
           type="button"
           onClick={() => setActiveTab('text')}
-          className={`py-2.5 px-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+          className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             activeTab === 'text'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
           }`}
         >
-          <Type className="w-3.5 h-3.5" />
+          <Type className="w-4 h-4" />
           <span>Type</span>
         </button>
         <button
           type="button"
           onClick={() => setActiveTab('voice')}
-          className={`py-2.5 px-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+          className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             activeTab === 'voice'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
           }`}
         >
-          <Mic className={`w-3.5 h-3.5 ${isListening ? 'text-rose-400 animate-pulse' : ''}`} />
+          <Mic className={`w-4 h-4 ${isListening ? 'text-rose-400 animate-pulse' : ''}`} />
           <span>Dictate</span>
         </button>
         <button
           type="button"
           onClick={() => setActiveTab('preset')}
-          className={`py-2.5 px-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+          className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             activeTab === 'preset'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+          <Sparkles className="w-4 h-4 text-amber-300" />
           <span>Demos</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('camera')}
-          className={`py-2.5 px-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
-            activeTab === 'camera'
-              ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-          }`}
-        >
-          <Camera className="w-3.5 h-3.5" />
-          <span>Scan</span>
         </button>
       </div>
 
-      {/* TAB 1: Camera & Photo Scanning */}
-      {activeTab === 'camera' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl text-center space-y-4">
+      {/* TAB 1: Manual Text Area Input */}
+      {activeTab === 'text' && (
+        <form onSubmit={handleManualSubmit} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
           <div className="space-y-1">
-            <h2 className="text-lg font-extrabold text-white flex items-center justify-center gap-2">
-              <Camera className="w-5 h-5 text-blue-400" />
-              Scan Handwritten List
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <Type className="w-4 h-4 text-blue-400" />
+              Manual Item Input
             </h2>
             <p className="text-xs text-slate-400">
-              Snap a picture of your paper list for instant route mapping
+              Type or paste your grocery items (one item per line)
             </p>
           </div>
 
-          {/* Gemini Vision AI Config Bar */}
-          <div className="p-3 rounded-2xl bg-indigo-950/40 border border-indigo-800/60 text-left space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-extrabold text-indigo-300">
-                <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Gemini Flash Vision AI (100% Free)</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsKeyDrawerOpen(!isKeyDrawerOpen)}
-                className="px-2.5 py-1 rounded-lg bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 text-[11px] font-bold border border-indigo-700/50 flex items-center gap-1 cursor-pointer"
-              >
-                <Key className="w-3 h-3 text-amber-400" />
-                <span>{getSavedGeminiApiKey() ? 'API Key Active ✓' : 'Setup Free Key'}</span>
-              </button>
-            </div>
-
-            {isKeyDrawerOpen && (
-              <form onSubmit={handleSaveApiKey} className="pt-2 border-t border-indigo-800/60 space-y-2.5 animate-in fade-in">
-                <p className="text-[11px] text-indigo-200/80">
-                  Keys saved here stay 100% private in your browser &amp; are never uploaded to GitHub.{' '}
-                  Get your free API key at{' '}
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-amber-300 underline font-bold inline-flex items-center gap-0.5"
-                  >
-                    Google AI Studio <ExternalLink className="w-2.5 h-2.5" />
-                  </a>
-                </p>
-
-                <div className="flex gap-2">
-                  <input
-                    type="password"
-                    placeholder="Paste Gemini API Key (AQ.Ab8... or AIzaSy...)"
-                    value={geminiApiKey}
-                    onChange={(e) => setGeminiApiKey(e.target.value)}
-                    className="flex-1 bg-slate-900 border border-indigo-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl flex items-center gap-1 cursor-pointer"
-                  >
-                    {keySaveSuccess ? <Check className="w-3.5 h-3.5" /> : 'Save'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-
-          {/* Hidden Camera File Input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleFileChange}
-            className="hidden"
-            id="camera-file-input"
+          <textarea
+            rows={7}
+            value={manualText}
+            onChange={(e) => setManualText(e.target.value)}
+            placeholder={`2% Whole Milk\nBananas\nGround Beef\nTomato Soup\nCheerios\nPaper Towels\nIce Cream`}
+            className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 font-mono transition-colors resize-none"
           />
 
-          {/* Native File Selector Box */}
-          <div className="p-4 border-2 border-dashed border-slate-700 hover:border-blue-500/80 rounded-xl bg-slate-950/60 transition-all space-y-2">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer"
-            />
-          </div>
-
-          {/* Primary Mobile Camera Action Button */}
-          <div className="space-y-2.5">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isProcessingOcr}
-              className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-base rounded-xl shadow-lg shadow-blue-600/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Camera className="w-6 h-6 animate-bounce" />
-              <span>Open Mobile Camera</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isProcessingOcr}
-              className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Upload className="w-4 h-4 text-slate-400" />
-              <span>Select Photo from Gallery</span>
-            </button>
-          </div>
-
-          {/* Error / Warning Alert */}
-          {ocrErrorMessage && (
-            <div className="p-3 rounded-xl bg-amber-950/50 border border-amber-800/60 text-xs text-amber-300 flex items-start gap-2 text-left">
-              <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <span>{ocrErrorMessage}</span>
-            </div>
-          )}
-
-          {/* OCR Processing Loader */}
-          {isProcessingOcr && (
-            <div className="p-4 rounded-xl bg-blue-950/80 border border-blue-800 space-y-3 animate-in fade-in">
-              <div className="flex items-center justify-between text-xs font-semibold text-blue-200">
-                <span className="flex items-center gap-1.5">
-                  <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
-                  {ocrStatus}
-                </span>
-                <span>{ocrProgress}%</span>
-              </div>
-              <div className="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-blue-900">
-                <div
-                  className="bg-gradient-to-r from-blue-500 to-indigo-400 h-full transition-all duration-300"
-                  style={{ width: `${ocrProgress}%` }}
-                />
-              </div>
-              {selectedImagePreview && (
-                <div className="mt-2 rounded-lg overflow-hidden border border-slate-700 max-h-32 flex justify-center bg-black/40">
-                  <img
-                    src={selectedImagePreview}
-                    alt="Handwritten List Preview"
-                    className="object-contain h-32 opacity-80"
-                  />
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+          <button
+            type="submit"
+            disabled={!manualText.trim()}
+            className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>Parse Items & Review</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </form>
       )}
 
       {/* TAB 2: Voice Dictation Mode */}
@@ -368,48 +164,16 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
         </div>
       )}
 
-      {/* TAB 3: Manual Text Area Input */}
-      {activeTab === 'text' && (
-        <form onSubmit={handleManualSubmit} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-          <div className="space-y-1">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Type className="w-4 h-4 text-blue-400" />
-              Manual Item Input
-            </h2>
-            <p className="text-xs text-slate-400">
-              Type or paste your grocery items (one item per line)
-            </p>
-          </div>
-
-          <textarea
-            rows={7}
-            value={manualText}
-            onChange={(e) => setManualText(e.target.value)}
-            placeholder={`2% Whole Milk\nBananas\nGround Beef\nTomato Soup\nCheerios\nPaper Towels\nIce Cream`}
-            className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-blue-500 font-mono transition-colors resize-none"
-          />
-
-          <button
-            type="submit"
-            disabled={!manualText.trim()}
-            className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <span>Parse Items & Review</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </form>
-      )}
-
-      {/* TAB 4: Preset Demo Sample Cards */}
+      {/* TAB 3: Preset Demo Sample Cards */}
       {activeTab === 'preset' && (
         <div className="space-y-3">
           <div className="text-center space-y-1 px-1">
             <h2 className="text-sm font-bold text-slate-200 flex items-center justify-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              Select a Demo Handwritten List
+              Select a Demo List
             </h2>
             <p className="text-xs text-slate-400">
-              Test AislePilot instantly with pre-loaded handwritten list cards
+              Test AislePilot instantly with pre-loaded shopping list cards
             </p>
           </div>
 
@@ -441,4 +205,3 @@ export const InputSection: React.FC<InputSectionProps> = ({ onItemsParsed }) => 
     </div>
   );
 };
-
