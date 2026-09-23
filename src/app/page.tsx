@@ -9,6 +9,8 @@ import { RouteView } from '@/components/RouteView';
 import { FamilyPortalModal } from '@/components/FamilyPortalModal';
 import { ListTemplatesModal } from '@/components/ListTemplatesModal';
 import { TripHistoryModal } from '@/components/TripHistoryModal';
+import { CloudSyncModal } from '@/components/CloudSyncModal';
+import { downloadListFromCloud } from '@/lib/cloudSync';
 import { WalmartStoreProfile, MappedGroceryItem, FamilyUserProfile } from '@/lib/types';
 import { DEFAULT_WALMART_STORES } from '@/sampleData/walmartStores';
 import { mapAndOptimizeGroceryRoute } from '@/lib/routeOptimizer';
@@ -21,10 +23,11 @@ export default function Home() {
   const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
   const [step, setStep] = useState<'input' | 'review' | 'route'>('input');
 
-  // Modal states for new roadmap features
+  // Modal states for roadmap features
   const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
   const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isCloudSyncModalOpen, setIsCloudSyncModalOpen] = useState(false);
   const [activeProfile, setActiveProfile] = useState<FamilyUserProfile>(CacheManager.getActiveUserProfile());
 
   // Active Trip states
@@ -33,7 +36,7 @@ export default function Home() {
   const [tripStartTime, setTripStartTime] = useState<number>(Date.now());
   const [hasRestoredActiveTrip, setHasRestoredActiveTrip] = useState(false);
 
-  // Load saved store preference & active trip state on initial mount
+  // Load saved store preference, URL hash sync codes, & active trip state on initial mount
   useEffect(() => {
     try {
       const savedStore = localStorage.getItem('aislepilot_selected_store');
@@ -41,13 +44,25 @@ export default function Home() {
         setCurrentStore(JSON.parse(savedStore));
       }
 
-      // Restore active trip if available
-      const savedTrip = CacheManager.getActiveTripState();
-      if (savedTrip && savedTrip.items && savedTrip.items.length > 0) {
-        setMappedItems(savedTrip.items);
-        setStep(savedTrip.step || 'route');
-        if (savedTrip.startTime) setTripStartTime(savedTrip.startTime);
-        setHasRestoredActiveTrip(true);
+      // Check for URL hash sync code (e.g. #sync=G3HU92GHW) for instant 1-tap mobile loading
+      if (typeof window !== 'undefined' && window.location.hash.includes('#sync=')) {
+        const hashSyncCode = window.location.hash.split('#sync=').pop() || '';
+        if (hashSyncCode) {
+          downloadListFromCloud(hashSyncCode).then((payload) => {
+            if (payload.items && payload.items.length > 0) {
+              handleItemsParsed(payload.items);
+            }
+          }).catch((e) => console.warn('Hash sync load error', e));
+        }
+      } else {
+        // Restore active trip if available
+        const savedTrip = CacheManager.getActiveTripState();
+        if (savedTrip && savedTrip.items && savedTrip.items.length > 0) {
+          setMappedItems(savedTrip.items);
+          setStep(savedTrip.step || 'route');
+          if (savedTrip.startTime) setTripStartTime(savedTrip.startTime);
+          setHasRestoredActiveTrip(true);
+        }
       }
     } catch (e) {
       console.warn('Error reading saved state', e);
@@ -213,6 +228,7 @@ export default function Home() {
         onOpenFamilyModal={() => setIsFamilyModalOpen(true)}
         onOpenTemplatesModal={() => setIsTemplatesModalOpen(true)}
         onOpenHistoryModal={() => setIsHistoryModalOpen(true)}
+        onOpenCloudSyncModal={() => setIsCloudSyncModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -289,6 +305,17 @@ export default function Home() {
       <TripHistoryModal
         isOpen={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}
+      />
+
+      {/* Cross-Device Cloud Sync Modal */}
+      <CloudSyncModal
+        isOpen={isCloudSyncModalOpen}
+        onClose={() => setIsCloudSyncModalOpen(false)}
+        currentItems={mappedItems.length > 0 ? mappedItems.map(i => i.originalText) : rawItems}
+        currentStoreId={currentStore.id}
+        onLoadSyncedList={(syncedItems) => {
+          handleItemsParsed(syncedItems);
+        }}
       />
     </main>
   );

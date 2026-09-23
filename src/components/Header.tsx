@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Compass, MapPin, ChevronDown, Users, Bookmark, History } from 'lucide-react';
+import { Compass, MapPin, ChevronDown, Users, Bookmark, History, Cloud } from 'lucide-react';
 import { WalmartStoreProfile, FamilyUserProfile } from '@/lib/types';
 
 interface HeaderProps {
@@ -13,6 +13,7 @@ interface HeaderProps {
   onOpenFamilyModal?: () => void;
   onOpenTemplatesModal?: () => void;
   onOpenHistoryModal?: () => void;
+  onOpenCloudSyncModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,6 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenFamilyModal,
   onOpenTemplatesModal,
   onOpenHistoryModal,
+  onOpenCloudSyncModal,
 }) => {
   const steps = [
     { id: 'input', label: '1. Scan / Input' },
@@ -50,8 +52,19 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Quick Toolbar: Family Sync, Templates, History */}
+          {/* Quick Toolbar: Cloud Sync, Family Portal, Templates, History */}
           <div className="flex items-center gap-1.5">
+            {/* Cross-Device Cloud Sync Button */}
+            {onOpenCloudSyncModal && (
+              <button
+                onClick={onOpenCloudSyncModal}
+                className="p-2 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-800/80 transition-all text-blue-400 hover:text-blue-300 shadow-md flex items-center justify-center"
+                title="Cross-Device Cloud Sync (PC to Phone)"
+              >
+                <Cloud className="w-4 h-4 text-blue-400 animate-pulse" />
+              </button>
+            )}
+
             {/* Family Portal Profile Selector */}
             {onOpenFamilyModal && (
               <button
